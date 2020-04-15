@@ -22,13 +22,13 @@ pacman -Sy --noconfirm --needed reflector
 reflector -c $country --score 5 --save /etc/pacman.d/mirrorlist
 
 if [ "$usepaclan" = true ]; then
-	useradd -g wheel aur &&
+	useradd -m -g wheel aur &&
 	echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers &&
 	pacman -Sy --noconfirm --needed base-devel git &&
 	cd /tmp && rm -rf /tmp/paclan &&
 	sudo -u aur git clone https://aur.archlinux.org/paclan.git &&
 	cd paclan &&
-	sudo -u aur makepkg -si || error "error while installing paclan."
+	sudo -u aur makepkg -si --noconfirm || error "error while installing paclan."
 fi
 
 pacstrap /mnt base linux linux-firmware

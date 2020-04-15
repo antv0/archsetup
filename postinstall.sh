@@ -111,7 +111,7 @@ total=$(wc -l < $packages_list)
 aurinstalled=$(pacman -Qqm)
 while IFS=, read -r tag program comment; do
 	n=$((n+1))
-	echo "\033[1m==> [$n/$total]\033[0m\033 [4m$program"
+	echo -e "\033[1m==> [$n/$total]\033[0m\033 [4m$program"
 	case "$tag" in
 		"A") install_yay	"$program" ;;
 		"G") install_git    "$program" ;;
