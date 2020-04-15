@@ -6,6 +6,7 @@ hostname="arch"
 country="france"
 timezone="Europe/Paris"
 chroot="arch-chroot /mnt "
+usepaclan=true
 
 error(){
 	echo "$1"; exit
@@ -13,14 +14,19 @@ error(){
 
 ping -c 1 archlinux.org || error "check your internet connexion."
 
-curl -O https://raw.githubusercontent.com/antv0/archsetup/master/usepaclan.sh
-chmod +x usepacredir.sh
-
 mountpoint -q /mnt || error "Nothing is mounted on /mnt."
 
 #update the mirrors with reflector in installation environment
 pacman -Sy --noconfirm reflector
 reflector -c $country --score 5 --save /etc/pacman.d/mirrorlist
+
+if [ "$usepaclan" = true ]; then
+	pacman -Sy --noconfirm base-devel &&
+	cd /tmp && rm -rf /tmp/paclan &&
+	sudo -u nobody git clone https://aur.archlinux.org/paclan.git &&
+	cd paclan &&
+	sudo -u makepkg -si
+fi
 
 pacstrap /mnt base linux linux-firmware
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -49,5 +55,3 @@ chmod 777 postinstall.sh
 curl -O https://raw.githubusercontent.com/antv0/archsetup/master/installgrub.sh
 chmod 777 installgrub.sh
 curl -O https://raw.githubusercontent.com/antv0/archsetup/master/packages.csv
-curl -O https://raw.githubusercontent.com/antv0/archsetup/master/usepaclan.sh
-chmod +x usepacredir.sh
