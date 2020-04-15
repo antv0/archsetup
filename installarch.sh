@@ -19,7 +19,7 @@ chmod +x usepacredir.sh
 mountpoint -q /mnt || error "Nothing is mounted on /mnt."
 
 #update the mirrors with reflector in installation environment
-pacman -S --noconfirm reflector
+pacman -Sy --noconfirm reflector
 reflector -c $country --score 5 --save /etc/pacman.d/mirrorlist
 
 pacstrap /mnt base linux linux-firmware
