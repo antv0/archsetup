@@ -12,7 +12,7 @@ error(){
 	echo "$1"; exit
 }
 
-if [ "$usepaclan" = true ]; then mount -o remount,size=1G /run/archiso/cowspace || error "not enough ram. Please disable usepaclan" fi
+if [ "$usepaclan" = true ]; then mount -o remount,size=1G /run/archiso/cowspace || error "not enough ram. Please disable usepaclan"; fi
 ping -c 1 archlinux.org || error "check your internet connexion."
 
 mountpoint -q /mnt || error "Nothing is mounted on /mnt."
