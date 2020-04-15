@@ -1,9 +1,9 @@
 #!/bin/sh
 
-dotfiles_repository="https://github.com/Kwilyst/voidrice"
+dotfiles_repository="https://github.com/antv0/dotfiles"
 aurhelper="yay"
 working_dir=$(pwd)
-packages_list="$working_dir/progs.csv"
+packages_list="$working_dir/packages.csv"
 git_dir="$working_dir/git"
 name=""
 
@@ -12,7 +12,7 @@ name=""
 ###########
 
 install_pacman(){ 
-	pacman --noconfirm --needed -S "$1" 
+	pacman --noconfirm --needed -S "$1" >/dev/null 2>&1
 }
 
 install_git() {
@@ -20,12 +20,12 @@ install_git() {
 	dir="$dir_git/$progname"
 	sudo -u "$name" git clone --depth 1 "$1" "$dir" >/dev/null 2>&1 || { cd "$dir" || return ; sudo -u "$name" git pull --force origin master;}
 	cd "$dir" || exit
-	make
-	make install
+	make >/dev/null 2>&1
+	make install >/dev/null 2>&1
 }
 
 install_yay() {
-	sudo -u "$name" yay -S --noconfirm "$1"
+	sudo -u "$name" yay -S --noconfirm "$1" >/dev/null 2>&1
 }
 
 newperm() { # Set special sudoers settings for install (or after).
@@ -47,7 +47,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 #check if $packages_list file exist
-if ! [-f "$packages_list"]; then echo "ERROR : package_list file not available."; exit; fi
+if ! [ -f "$packages_list" ]; then echo "ERROR : package_list file not available."; exit; fi
 
 # Get and verify username and password.
 # Prompts user for new username an password.
@@ -76,8 +76,10 @@ echo "$name:$pass1" | chpasswd
 unset pass1 pass2
 
 # Refresh Arch keyring
+echo "refreshing Arch keyring..."
 pacman --noconfirm -Sy archlinux-keyring >/dev/null 2>&1
 
+echo "Installing curl, base-devel, git..."
 install_pacman curl
 install_pacman base-devel
 install_pacman git
@@ -95,9 +97,9 @@ sed -i "s/-j2/-j$(nproc)/;s/^#MAKEFLAGS/MAKEFLAGS/" /etc/makepkg.conf
 # Install yay
 [ -f "/usr/bin/yay" ] || (
 echo "Installing yay..."
-git clone https://aur.archlinux.org/yay.git
+git clone https://aur.archlinux.org/yay.git >/dev/null 2>&1
 cd yay
-sudo -u "$name" makepkg --noconfirm -si
+sudo -u "$name" makepkg --noconfirm -si >/dev/null 2>&1
 cd );
 
 # Create the directory where the git packages are downloaded
@@ -121,12 +123,11 @@ done < /tmp/progs.csv
 dir=$(mktemp -d)
 [ ! -d "/home/$name" ] && mkdir -p /home/$name
 chown -R "$name":wheel "$dir" /home/$name
-sudo -u "$name" git clone --depth 1 $dotfiles_repository "$dir"
+sudo -u "$name" git clone --depth 1 $dotfiles_repository "$dir" >/dev/null 2>&1
 sudo -u "$name" cp -rfT "$dir" /home/$name
 rm -f "/home/$name/README.md" "/home/$name/LICENSE"
 
 systemctl enable systemd-timesyncd.service
-
 
 # Most important commands! Get rid of the beep!
 rmmod pcspkr
