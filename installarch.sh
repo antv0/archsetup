@@ -12,7 +12,7 @@ error(){
 	echo "$1"; exit
 }
 
-if [ "$usepaclan" = true ]; then mount -o remount,size=1G /run/archiso/cowspace || error "not enough ram. Please disable usepaclan"; fi
+if [ "$usepaclan" = true ]; then mount -o remount,size=2G /run/archiso/cowspace || error "not enough ram. Please disable usepaclan"; fi
 ping -c 1 archlinux.org || error "check your internet connexion."
 
 mountpoint -q /mnt || error "Nothing is mounted on /mnt."
@@ -22,11 +22,13 @@ pacman -Sy --noconfirm --needed reflector
 reflector -c $country --score 5 --save /etc/pacman.d/mirrorlist
 
 if [ "$usepaclan" = true ]; then
-	pacman -Sy --noconfirm --needed base-devel &&
+	useradd -g wheel aur &&
+	echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers &&
+	pacman -Sy --noconfirm --needed base-devel git &&
 	cd /tmp && rm -rf /tmp/paclan &&
-	sudo -u nobody git clone https://aur.archlinux.org/paclan.git &&
+	sudo -u aur git clone https://aur.archlinux.org/paclan.git &&
 	cd paclan &&
-	sudo -u makepkg -si
+	sudo -u aur makepkg -si || error "error while installing paclan."
 fi
 
 pacstrap /mnt base linux linux-firmware
