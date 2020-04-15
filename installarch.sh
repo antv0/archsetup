@@ -7,12 +7,16 @@ country="france"
 timezone="Europe/Paris"
 chroot="arch-chroot /mnt "
 
-ping -c 1 archlinux.org || {echo "check your internet connexion."; exit}
+error(){
+	echo "$1"; exit
+}
+
+ping -c 1 archlinux.org || error "check your internet connexion."
 
 curl -O https://raw.githubusercontent.com/antv0/archsetup/master/usepacredir.sh
 chmod +x usepacredir.sh
 
-mountpoint -q /mnt || {echo "Nothing is mounted on /mnt."; exit}
+mountpoint -q /mnt || error "Nothing is mounted on /mnt."
 
 #update the mirrors with reflector in installation environment
 pacman -S --noconfirm reflector
