@@ -17,11 +17,11 @@ ping -c 1 archlinux.org || error "check your internet connexion."
 mountpoint -q /mnt || error "Nothing is mounted on /mnt."
 
 #update the mirrors with reflector in installation environment
-pacman -Sy --noconfirm reflector
+pacman -Sy --noconfirm --needed reflector
 reflector -c $country --score 5 --save /etc/pacman.d/mirrorlist
 
 if [ "$usepaclan" = true ]; then
-	pacman -Sy --noconfirm base-devel &&
+	pacman -Sy --noconfirm --needed base-devel &&
 	cd /tmp && rm -rf /tmp/paclan &&
 	sudo -u nobody git clone https://aur.archlinux.org/paclan.git &&
 	cd paclan &&
@@ -46,7 +46,7 @@ $chroot mkinitcpio -P
 $chroot passwd
 
 #update the mirrors with reflector
-$chroot pacman -Sy --noconfirm reflector
+$chroot pacman -Sy --noconfirm --needed reflector
 $chroot reflector -c $country --score 5 --save /etc/pacman.d/mirrorlist
 
 cd /mnt/root

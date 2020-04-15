@@ -1,4 +1,6 @@
 #TAG,NAME IN REPO (or git url),PURPOSE (should be a verb phrase to sound right while installing)
+#INSTALL FIRST
+A,paclan,""
 #GRAPHICAL
 ,xorg-server,"is the graphical server."
 ,xorg-xwininfo,"allows querying information about windows."
