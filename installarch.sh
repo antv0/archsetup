@@ -13,7 +13,7 @@ error(){
 
 ping -c 1 archlinux.org || error "check your internet connexion."
 
-curl -O https://raw.githubusercontent.com/antv0/archsetup/master/usepacredir.sh
+curl -O https://raw.githubusercontent.com/antv0/archsetup/master/usepaclan.sh
 chmod +x usepacredir.sh
 
 mountpoint -q /mnt || error "Nothing is mounted on /mnt."
@@ -40,14 +40,14 @@ $chroot mkinitcpio -P
 $chroot passwd
 
 #update the mirrors with reflector
-$chroot pacman -noconfirm -S reflector
+$chroot pacman -Sy --noconfirm reflector
 $chroot reflector -c $country --score 5 --save /etc/pacman.d/mirrorlist
 
 cd /mnt/root
 curl -O https://raw.githubusercontent.com/antv0/archsetup/master/postinstall.sh
-chmod +x postinstall.sh
+chmod 777 postinstall.sh
 curl -O https://raw.githubusercontent.com/antv0/archsetup/master/installgrub.sh
-chmod +x installgrub.sh
-curl -O https://raw.githubusercontent.com/antv0/archsetup/master/packages.csv"
-
-$chroot
+chmod 777 installgrub.sh
+curl -O https://raw.githubusercontent.com/antv0/archsetup/master/packages.csv
+curl -O https://raw.githubusercontent.com/antv0/archsetup/master/usepaclan.sh
+chmod +x usepacredir.sh
