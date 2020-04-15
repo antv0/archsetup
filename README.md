@@ -1,0 +1,2 @@
+# archsetup
+arch setup script
