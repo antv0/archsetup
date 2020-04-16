@@ -22,7 +22,7 @@ error(){
 }
 
 if [ "$use_paclan" = true ]; then mount -o remount,size=2G /run/archiso/cowspace || error "not enough ram. Please disable use_paclan"; fi
-ping -c 1 archlinux.org || error "check your internet connexion."
+ping -c 1 archlinux.org >/dev/null 2>&1 || error "check your internet connexion."
 
 mountpoint -q /mnt || error "Nothing is mounted on /mnt."
 
