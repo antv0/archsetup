@@ -41,7 +41,7 @@ if [ "$use_paclan" = true ]; then
 	cd /tmp && rm -rf /tmp/paclan >/dev/null 2>&1 &&
 	sudo -u aur git clone https://aur.archlinux.org/paclan.git >/dev/null 2>&1 &&
 	cd paclan >/dev/null 2>&1 &&
-	sudo -u aur makepkg -si --noconfirm || error "error while installing paclan."
+	sudo -u aur makepkg -si --noconfirm >/dev/null 2>&1 || error "error while installing paclan."
 fi
 
 message "running pacstrap..."
@@ -50,18 +50,19 @@ pacstrap /mnt base linux linux-firmware
 message "Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
-message "Setting up language, keymap, hostname..."
+message "Setting up timezone, language, keymap, hostname..."
 ln -sf /mnt/usr/share/zoneinfo/$timezone /mnt/etc/localtime
-$chroot hwclock --systohc
+$chroot hwclock --systohc >/dev/null 2>&1
 sed -i "s/#$locale/$locale/g" /mnt/etc/locale.gen
-$chroot locale-gen
+$chroot locale-gen >/dev/null 2>&1
 echo "LANG=$LANG" > /mnt/etc/locale.conf
 echo "KEYMAP=$keymap" > /mnt/etc/vconsole.conf
 echo $hostname > /mnt/etc/hostname
 echo "127.0.0.1	localhost
 ::1		localhost
 127.0.1.1	"$hostname".localdomain	"$hostname > /mnt/etc/hosts
-$chroot mkinitcpio -P
+message "running mkinicpio -P..."
+$chroot mkinitcpio -P >/dev/null 2>&1
 
 message "Setting root password."
 if [ -z $root_password ]; then $chroot passwd;
@@ -85,5 +86,5 @@ curl -O https://raw.githubusercontent.com/antv0/archsetup/master/grub-install-mb
 chmod 777 grub-install-mbr.sh
 curl -O https://raw.githubusercontent.com/antv0/archsetup/master/packages.csv >/dev/null 2>&1
 
-message "chroot into new system."
-$chroot zsh /root
+message "Chroot into new system."
+$chroot bash --rcfile <(echo cd /root)
