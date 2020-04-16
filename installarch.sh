@@ -36,7 +36,7 @@ fi
 if [ "$use_paclan" = true ]; then
 	message "Installing paclan in installation environment..."
 	useradd -m -g wheel aur >/dev/null 2>&1 &&
-	echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers >/dev/null 2>&1 &&
+	echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers &&
 	pacman -Sy --noconfirm --needed base-devel git >/dev/null 2>&1 &&
 	cd /tmp && rm -rf /tmp/paclan >/dev/null 2>&1 &&
 	sudo -u aur git clone https://aur.archlinux.org/paclan.git >/dev/null 2>&1 &&
