@@ -2,8 +2,7 @@
 
 dotfiles_repository="https://github.com/antv0/dotfiles"
 aurhelper="yay"
-working_dir=$(pwd)
-packages_list="$working_dir/packages.csv"
+packages_list="packages.csv"
 git_dir="$working_dir/git"
 name=""
 
@@ -17,7 +16,7 @@ install_pacman(){
 
 install_git() {
 	progname="$(basename "$1" .git)"
-	dir="$dir_git/$progname"
+	dir="$git_dir/$progname"
 	sudo -u "$name" git clone --depth 1 "$1" "$dir" >/dev/null 2>&1 || { cd "$dir" || return ; sudo -u "$name" git pull --force origin master;}
 	cd "$dir" || exit
 	make >/dev/null 2>&1
@@ -28,8 +27,11 @@ install_yay() {
 	sudo -u "$name" yay -S --noconfirm "$1" >/dev/null 2>&1
 }
 
-newperm() { # Set special sudoers settings for install (or after).
+rmperms() {
 	sed -i "/#CUSTOM/d" /etc/sudoers
+}
+
+newperm() { # Set special sudoers settings for install (or after).
 	echo "$1 #CUSTOM" >> /etc/sudoers ;}
 
 
@@ -97,12 +99,15 @@ sed -i "s/-j2/-j$(nproc)/;s/^#MAKEFLAGS/MAKEFLAGS/" /etc/makepkg.conf
 # Install yay
 [ -f "/usr/bin/yay" ] || (
 echo "Installing yay..."
-git clone https://aur.archlinux.org/yay.git >/dev/null 2>&1
+dir=$(sudo -u "$name" mktemp -d)
+cd $dir
+sudo -u "$name" git clone https://aur.archlinux.org/yay.git >/dev/null 2>&1
 cd yay
 sudo -u "$name" makepkg --noconfirm -si >/dev/null 2>&1
-cd );
+cd ~);
 
 # Create the directory where the git packages are downloaded
+git_dir="/home/$name/git"
 mkdir -p "$git_dir"; chown -R "$name":wheel "$git_dir"
 
 # Install all the packages
@@ -111,7 +116,7 @@ total=$(wc -l < $packages_list)
 aurinstalled=$(pacman -Qqm)
 while IFS=, read -r tag program comment; do
 	n=$((n+1))
-	echo -e "\033[1m==> [$n/$total]\033[0m\033 [4m$program"
+	echo -e "\033[1m==> [$n/$total]\033[0m \033[4m$program"
 	case "$tag" in
 		"A") install_yay	"$program" ;;
 		"G") install_git    "$program" ;;
@@ -127,6 +132,7 @@ sudo -u "$name" git clone --depth 1 $dotfiles_repository "$dir" >/dev/null 2>&1
 sudo -u "$name" cp -rfT "$dir" /home/$name
 rm -f "/home/$name/README.md" "/home/$name/LICENSE"
 
+# Enable the auto time synchronisation.
 systemctl enable systemd-timesyncd.service
 
 # Most important commands! Get rid of the beep!
@@ -138,6 +144,7 @@ chsh -s /usr/bin/zsh $name
 
 # This line, overwriting the `newperms` command above will allow the user to run
 # serveral important commands, `shutdown`, `reboot`, updating, etc. without a password.
+rmperms
 newperm "%wheel ALL=(ALL) ALL"
 newperm "%wheel ALL=(ALL) NOPASSWD: /usr/bin/shutdown,/usr/bin/reboot,/usr/bin/systemctl suspend,/usr/bin/wifi-menu,/usr/bin/mount,/usr/bin/umount,/usr/bin/systemctl restart NetworkManager,/usr/bin/loadkeys,/usr/bin/pacman -Syu,/usr/bin/pacman -Syyu,/usr/bin/pacman -Syyu --noconfirm,/usr/bin/pacman -Syyuw --noconfirm"
 
