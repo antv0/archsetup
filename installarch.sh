@@ -67,8 +67,10 @@ fi
 cd /mnt/root
 curl -O https://raw.githubusercontent.com/antv0/archsetup/master/postinstall.sh
 chmod 777 postinstall.sh
-curl -O https://raw.githubusercontent.com/antv0/archsetup/master/installgrub.sh
-chmod 777 installgrub.sh
+curl -O https://raw.githubusercontent.com/antv0/archsetup/master/grub-install-efi.sh
+chmod 777 grub-install-efi.sh
+curl -O https://raw.githubusercontent.com/antv0/archsetup/master/grub-install-mbr.sh
+chmod 777 grub-install-mbr.sh
 curl -O https://raw.githubusercontent.com/antv0/archsetup/master/packages.csv
 
-arch-chroot /mnt
+$chroot zsh /root
