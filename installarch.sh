@@ -14,7 +14,7 @@ use_reflector=true
 root_password=""
 
 message() {
-	echo -e "\033[36m$1\033[0m"
+	echo -e "\033[36m[installarch.sh]\033[0m $1"
 }
 
 error(){
@@ -72,7 +72,7 @@ unset root_password
 #update the mirrors with reflector
 message "Updating mirrors with reflector."
 if [ "$use_reflector" = true ]; then
-	$chroot pacman -Sy --noconfirm --needed reflector
+	$chroot pacman -Sy --noconfirm --needed reflector >/dev/null 2>&1
 	$chroot reflector -c $country --score 5 --save /etc/pacman.d/mirrorlist
 fi
 
@@ -87,4 +87,4 @@ chmod 777 grub-install-mbr.sh
 curl -O https://raw.githubusercontent.com/antv0/archsetup/master/packages.csv >/dev/null 2>&1
 
 message "Chroot into new system."
-$chroot bash --rcfile <(echo cd /root)
+$chroot 'bash --rcfile <(echo cd /root)'

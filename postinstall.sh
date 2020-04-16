@@ -11,7 +11,7 @@ git_dir="$working_dir/git"
 ###########
 
 message() {
-	echo -e "\033[36m$1\033[0m"
+	echo -e "\033[36m[postinstall.sh]\033[0m $1"
 }
 
 error(){
@@ -58,7 +58,7 @@ if ! [ -f "$packages_list" ]; then error "'package_list' file not available."; e
 
 # Get and verify username and password.
 # Prompts user for new username an password.
-if [ -z name ]; then
+if [ -z $name ]; then
 	message "Enter a name for the user account : "
 	read name
 	while ! echo "$name" | grep "^[a-z_][a-z0-9_-]*$" >/dev/null 2>&1; do
@@ -67,7 +67,7 @@ if [ -z name ]; then
 	done
 fi
 
-if [ -z pass1 ]; then
+if [ -z $pass1 ]; then
 	message "Enter a password for that user:"
 	read -s pass1
 	message "Retype password."
@@ -88,7 +88,7 @@ echo "$name:$pass1" | chpasswd
 unset pass1 pass2
 
 # Refresh Arch keyring
-message "refreshing Arch keyring..."
+message "Refreshing Arch keyring..."
 pacman --noconfirm -Sy archlinux-keyring >/dev/null 2>&1
 
 message "Installing curl, base-devel, git..."
@@ -128,7 +128,7 @@ total=$(wc -l < /tmp/packages.csv)
 aurinstalled=$(pacman -Qqm)
 while IFS=, read -r tag program comment; do
 	n=$((n+1))
-	message -e "==> [$n/$total] $program"
+	message "==> [$n/$total] $program"
 	case "$tag" in
 		"A") install_yay	"$program" ;;
 		"G") install_git    "$program" ;;
