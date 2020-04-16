@@ -11,7 +11,11 @@ git_dir="$working_dir/git"
 ###########
 
 message() {
-	echo "\033[2m$1\033[0m"
+	echo "\033[36m$1\033[0m"
+}
+
+error(){
+	echo "\031[36m$1\033[0m"; exit
 }
 
 install_pacman(){ 
@@ -47,13 +51,10 @@ newperm() { # Set special sudoers settings for install (or after).
 ########
 
 #check root user
-if [[ $EUID -ne 0 ]]; then
-  message "You must run this with superuser privileges." 2>&1
-  exit 1
-fi
+if [[ $EUID -ne 0 ]]; then error "You must run this with superuser privileges."; fi
 
 #check if $packages_list file exist
-if ! [ -f "$packages_list" ]; then echo "ERROR : package_list file not available."; exit; fi
+if ! [ -f "$packages_list" ]; then error "'package_list' file not available."; exit; fi
 
 # Get and verify username and password.
 # Prompts user for new username an password.
@@ -81,7 +82,7 @@ if [ -z pass1 ]; then
 fi
 
 # Add user
-useradd -m -g wheel -s /bin/bash "$name" >/dev/null 2>&1
+useradd -m -g wheel -s /bin/bash "$name" >/dev/null 2>&1 || error "Error while adding user"
 usermod -a -G wheel "$name" && mkdir -p /home/"$name" && chown "$name":wheel /home/"$name"
 echo "$name:$pass1" | chpasswd
 unset pass1 pass2
@@ -110,9 +111,9 @@ sed -i "s/-j2/-j$(nproc)/;s/^#MAKEFLAGS/MAKEFLAGS/" /etc/makepkg.conf
 message "Installing yay..."
 dir=$(sudo -u "$name" mktemp -d)
 cd $dir
-sudo -u "$name" git clone https://aur.archlinux.org/yay.git >/dev/null 2>&1
+sudo -u "$name" git clone https://aur.archlinux.org/yay.git >/dev/null 2>&1 || error "Error while downloading yay."
 cd yay
-sudo -u "$name" makepkg -si --noconfirm  >/dev/null 2>&1
+sudo -u "$name" makepkg -si --noconfirm  >/dev/null 2>&1 || error "Error while installing yay."
 cd ~);
 
 # Create the directory where the git packages are downloaded
