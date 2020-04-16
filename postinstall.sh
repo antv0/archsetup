@@ -11,11 +11,11 @@ git_dir="$working_dir/git"
 ###########
 
 message() {
-	echo "\033[36m$1\033[0m"
+	echo -e "\033[36m$1\033[0m"
 }
 
 error(){
-	echo "\031[36m$1\033[0m"; exit
+	echo -e "\031[36m$1\033[0m"; exit
 }
 
 install_pacman(){ 
