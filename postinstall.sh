@@ -88,7 +88,7 @@ install_pacman git
 
 # Allow user to run sudo without password. Since AUR programs must be installed
 # in a fakeroot environment, this is required for all builds with AUR.
-newperms "%wheel ALL=(ALL) NOPASSWD: ALL"
+newperm "%wheel ALL=(ALL) NOPASSWD: ALL"
 
 # Make pacman and yay colorful and adds eye candy on the progress bar because why not.
 grep "^Color" /etc/pacman.conf >/dev/null || sed -i "s/^#Color/Color/" /etc/pacman.conf
@@ -103,7 +103,7 @@ dir=$(sudo -u "$name" mktemp -d)
 cd $dir
 sudo -u "$name" git clone https://aur.archlinux.org/yay.git >/dev/null 2>&1
 cd yay
-sudo -u "$name" makepkg --noconfirm -si >/dev/null 2>&1
+sudo -u "$name" makepkg -si --noconfirm  >/dev/null 2>&1
 cd ~);
 
 # Create the directory where the git packages are downloaded
@@ -116,7 +116,7 @@ total=$(wc -l < $packages_list)
 aurinstalled=$(pacman -Qqm)
 while IFS=, read -r tag program comment; do
 	n=$((n+1))
-	echo -e "\033[1m==> [$n/$total]\033[0m \033[4m$program"
+	echo -e "\033[1m==> [$n/$total]\033[0m \033[4m$program"\033[0m
 	case "$tag" in
 		"A") install_yay	"$program" ;;
 		"G") install_git    "$program" ;;
