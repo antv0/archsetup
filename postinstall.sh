@@ -15,7 +15,7 @@ message() {
 }
 
 error(){
-	echo -e "\031[36m$1\033[0m"; exit
+	echo -e "\033[31m$1\033[0m"; exit
 }
 
 install_pacman(){ 

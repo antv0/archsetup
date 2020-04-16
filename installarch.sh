@@ -18,7 +18,7 @@ message() {
 }
 
 error(){
-	echo -e "\031[36m$1\033[0m"; exit
+	echo -e "\033[31m$1\033[0m"; exit
 }
 
 if [ "$use_paclan" = true ]; then mount -o remount,size=2G /run/archiso/cowspace || error "not enough ram. Please disable use_paclan"; fi
