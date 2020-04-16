@@ -56,6 +56,7 @@ $chroot mkinitcpio -P
 
 if [ -z $root_password ]; then $chroot passwd;
 else echo $root_password | $chroot passwd --stdin; fi
+unset root_password
 
 #update the mirrors with reflector
 if [ "$use_reflector" = true ]; then

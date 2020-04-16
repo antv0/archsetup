@@ -1,14 +1,18 @@
 #!/bin/sh
 
+name="" #username
+pass1="" #user password
 dotfiles_repository="https://github.com/antv0/dotfiles"
-aurhelper="yay"
 packages_list="packages.csv"
 git_dir="$working_dir/git"
-name=""
 
 ###########
 #FUNCTIONS#
 ###########
+
+message() {
+	echo "\033[2m$1\033[0m"
+}
 
 install_pacman(){ 
 	pacman --noconfirm --needed -S "$1" >/dev/null 2>&1
@@ -44,7 +48,7 @@ newperm() { # Set special sudoers settings for install (or after).
 
 #check root user
 if [[ $EUID -ne 0 ]]; then
-  echo "You must run this with superuser privileges." 2>&1
+  message "You must run this with superuser privileges." 2>&1
   exit 1
 fi
 
@@ -53,23 +57,28 @@ if ! [ -f "$packages_list" ]; then echo "ERROR : package_list file not available
 
 # Get and verify username and password.
 # Prompts user for new username an password.
-echo "Enter a name for the user account : "
-read name
-while ! echo "$name" | grep "^[a-z_][a-z0-9_-]*$" >/dev/null 2>&1; do
-	echo "Username not valid. Give a username beginning with a letter, with only lowercase letters, - or _."
+if [ -z name ]; then
+	message "Enter a name for the user account : "
 	read name
-done
-echo "Enter a password for that user:"
-read -s pass1
-echo "Retype password."
-read -s pass2
-while ! [ "$pass1" = "$pass2" ]; do
-	unset pass2
-	echo "Passwords do not match.\\n\\nEnter password again."
+	while ! echo "$name" | grep "^[a-z_][a-z0-9_-]*$" >/dev/null 2>&1; do
+		message "Username not valid. Give a username beginning with a letter, with only lowercase letters, - or _."
+		read name
+	done
+fi
+
+if [ -z pass1 ]; then
+	message "Enter a password for that user:"
 	read -s pass1
-	echo "Retype password."
+	message "Retype password."
 	read -s pass2
-done
+	while ! [ "$pass1" = "$pass2" ]; do
+		unset pass2
+		message "Passwords do not match.\\n\\nEnter password again."
+		read -s pass1
+		message "Retype password."
+		read -s pass2
+	done
+fi
 
 # Add user
 useradd -m -g wheel -s /bin/bash "$name" >/dev/null 2>&1
@@ -78,10 +87,10 @@ echo "$name:$pass1" | chpasswd
 unset pass1 pass2
 
 # Refresh Arch keyring
-echo "refreshing Arch keyring..."
+message "refreshing Arch keyring..."
 pacman --noconfirm -Sy archlinux-keyring >/dev/null 2>&1
 
-echo "Installing curl, base-devel, git..."
+message "Installing curl, base-devel, git..."
 install_pacman curl
 install_pacman base-devel
 install_pacman git
@@ -98,7 +107,7 @@ sed -i "s/-j2/-j$(nproc)/;s/^#MAKEFLAGS/MAKEFLAGS/" /etc/makepkg.conf
 
 # Install yay
 [ -f "/usr/bin/yay" ] || (
-echo "Installing yay..."
+message "Installing yay..."
 dir=$(sudo -u "$name" mktemp -d)
 cd $dir
 sudo -u "$name" git clone https://aur.archlinux.org/yay.git >/dev/null 2>&1
@@ -109,22 +118,25 @@ cd ~);
 # Create the directory where the git packages are downloaded
 git_dir="/home/$name/git"
 mkdir -p "$git_dir"; chown -R "$name":wheel "$git_dir"
+message "Git packages will be downloaded in $git_dir."
 
 # Install all the packages
-sed '/^#/d' $packages_list > /tmp/progs.csv
-total=$(wc -l < $packages_list)
+message "Installing the packages"
+sed '/^#/d' $packages_list > /tmp/packages.csv
+total=$(wc -l < /tmp/packages.csv)
 aurinstalled=$(pacman -Qqm)
 while IFS=, read -r tag program comment; do
 	n=$((n+1))
-	echo -e "\033[1m==> [$n/$total]\033[0m \033[4m$program"\033[0m
+	message -e "==> [$n/$total] $program"
 	case "$tag" in
 		"A") install_yay	"$program" ;;
 		"G") install_git    "$program" ;;
 		  *) install_pacman "$program" ;;
 	esac
-done < /tmp/progs.csv
+done < /tmp/packages.csv
 
 # Install the dotfiles in the user's home directory
+message "Installing dotfiles..."
 dir=$(mktemp -d)
 [ ! -d "/home/$name" ] && mkdir -p /home/$name
 chown -R "$name":wheel "$dir" /home/$name
@@ -133,19 +145,23 @@ sudo -u "$name" cp -rfT "$dir" /home/$name
 rm -f "/home/$name/README.md" "/home/$name/LICENSE"
 
 # Enable the auto time synchronisation.
-systemctl enable systemd-timesyncd.service
+message "Enabling systemd-timesyncd..."
+systemctl enable systemd-timesyncd.service >/dev/null 2>&1
 
 # Most important commands! Get rid of the beep!
+message "Get rid of the beep!"
 rmmod pcspkr
 echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
 
 # Make zsh the default shell for the user.
-chsh -s /usr/bin/zsh $name
+message "Set zsh as default shell for $name."
+chsh -s /usr/bin/zsh $name >/dev/null 2>&1
 
 # This line, overwriting the `newperms` command above will allow the user to run
 # serveral important commands, `shutdown`, `reboot`, updating, etc. without a password.
+message "Allowing $name to run serveral important commands such as shutdown, reboot, updating, etc. without a password."
 rmperms
 newperm "%wheel ALL=(ALL) ALL"
 newperm "%wheel ALL=(ALL) NOPASSWD: /usr/bin/shutdown,/usr/bin/reboot,/usr/bin/systemctl suspend,/usr/bin/wifi-menu,/usr/bin/mount,/usr/bin/umount,/usr/bin/systemctl restart NetworkManager,/usr/bin/loadkeys,/usr/bin/pacman -Syu,/usr/bin/pacman -Syyu,/usr/bin/pacman -Syyu --noconfirm,/usr/bin/pacman -Syyuw --noconfirm"
 
-echo "==> Installation completed."
+message "Installation completed."
