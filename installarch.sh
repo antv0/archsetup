@@ -51,11 +51,11 @@ message "Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
 message "Setting up timezone, language, keymap, hostname..."
-ln -sf /mnt/usr/share/zoneinfo/$timezone /mnt/etc/localtime
+$chroot ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
 $chroot hwclock --systohc >/dev/null 2>&1
 sed -i "s/#$locale/$locale/g" /mnt/etc/locale.gen
 $chroot locale-gen >/dev/null 2>&1
-echo "LANG=$LANG" > /mnt/etc/locale.conf
+echo "LANG=$lang" > /mnt/etc/locale.conf
 echo "KEYMAP=$keymap" > /mnt/etc/vconsole.conf
 echo $hostname > /mnt/etc/hostname
 echo "127.0.0.1	localhost

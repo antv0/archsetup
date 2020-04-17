@@ -26,6 +26,7 @@ A,termsyn-font,"font for polybar"
 A,siji-git,"font for polybar"
 ,ttf-symbola,""
 #TOOLS
+,man,"manual"
 ,unzip,"unzips zips."
 ,arandr,"is a UI for screen adjustment."
 ,bc,"is used for a dropdown calculator."

@@ -39,8 +39,9 @@ rmperms() {
 	sed -i "/#CUSTOM/d" /etc/sudoers
 }
 
-newperm() { # Set special sudoers settings for install (or after).
-	echo "$1 #CUSTOM" >> /etc/sudoers ;}
+newperm() { # Set special sudoers settings.
+	echo "$1 #CUSTOM" >> /etc/sudoers
+}
 
 
 
@@ -144,6 +145,10 @@ chown -R "$name":wheel "$dir" /home/$name
 sudo -u "$name" git clone --depth 1 $dotfiles_repository "$dir" >/dev/null 2>&1
 sudo -u "$name" cp -rfT "$dir" /home/$name
 rm -f "/home/$name/README.md" "/home/$name/LICENSE"
+
+# Enable the network manager
+message "Enabling NetworkManager..."
+systemctl enable NetworkManager.service >/dev/null 2>&1
 
 # Enable the auto time synchronisation.
 message "Enabling systemd-timesyncd..."
