@@ -87,4 +87,4 @@ chmod 777 grub-install-mbr.sh
 curl -O https://raw.githubusercontent.com/antv0/archsetup/master/packages.csv >/dev/null 2>&1
 
 message "Chroot into new system."
-$chroot 'bash --rcfile <(echo cd /root)'
+$chroot 'bash --rcfile <<< "cd /root"'

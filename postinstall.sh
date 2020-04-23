@@ -39,8 +39,8 @@ rmperms() {
 	sed -i "/#CUSTOM/d" /etc/sudoers
 }
 
-newperm() { # Set special sudoers settings.
-	echo "$1 #CUSTOM" >> /etc/sudoers
+setperm() { # Set special sudoers settings.
+	echo "%wheel ALL=(ALL) NOPASSWD: ALL #CUSTOM" >> /etc/sudoers
 }
 
 
@@ -99,7 +99,7 @@ install_pacman git
 
 # Allow user to run sudo without password. Since AUR programs must be installed
 # in a fakeroot environment, this is required for all builds with AUR.
-newperm "%wheel ALL=(ALL) NOPASSWD: ALL"
+setperm
 
 # Make pacman and yay colorful and adds eye candy on the progress bar because why not.
 grep "^Color" /etc/pacman.conf >/dev/null || sed -i "s/^#Color/Color/" /etc/pacman.conf
@@ -163,11 +163,14 @@ echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
 message "Set zsh as default shell for $name."
 chsh -s /usr/bin/zsh $name >/dev/null 2>&1
 
-# This line, overwriting the `newperms` command above will allow the user to run
+# Remove special permissions
+rmperms
+
 # serveral important commands, `shutdown`, `reboot`, updating, etc. without a password.
 message "Allowing $name to run serveral important commands such as shutdown, reboot, updating, etc. without a password."
-rmperms
-newperm "%wheel ALL=(ALL) ALL"
-newperm "%wheel ALL=(ALL) NOPASSWD: /usr/bin/shutdown,/usr/bin/reboot,/usr/bin/systemctl suspend,/usr/bin/wifi-menu,/usr/bin/mount,/usr/bin/umount,/usr/bin/systemctl restart NetworkManager,/usr/bin/loadkeys,/usr/bin/pacman -Syu,/usr/bin/pacman -Syyu,/usr/bin/pacman -Syyu --noconfirm,/usr/bin/pacman -Syyuw --noconfirm"
+echo \
+"%wheel ALL=(ALL) ALL
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/shutdown,/usr/bin/reboot,/usr/bin/systemctl suspend,/usr/bin/wifi-menu,/usr/bin/mount,/usr/bin/umount,/usr/bin/systemctl restart NetworkManager,/usr/bin/loadkeys,/usr/bin/pacman -Syu,/usr/bin/pacman -Syyu,/usr/bin/pacman -Syyu --noconfirm,/usr/bin/pacman -Syyuw --noconfirm" > /etc/sudoers.d/nopassword
+chmod 0440 /etc/sudoers.d/nopassword
 
 message "Installation completed."
