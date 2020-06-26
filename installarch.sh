@@ -42,6 +42,9 @@ if [ "$use_paclan" = true ]; then
 	sudo -u aur git clone https://aur.archlinux.org/paclan.git >/dev/null 2>&1 &&
 	cd paclan >/dev/null 2>&1 &&
 	sudo -u aur makepkg -si --noconfirm >/dev/null 2>&1 || error "error while installing paclan."
+    sed -i "s/\[extra\]/\[extra\]\nInclude = \/etc\/pacman.d\/mirrorlist\.paclan/g" /etc/pacman.conf
+    sed -i "s/\[core\]/\[core\]\nInclude = \/etc\/pacman.d\/mirrorlist\.paclan/g" /etc/pacman.conf
+    sed -i "s/\[community\]/\[community\]\nInclude = \/etc\/pacman.d\/mirrorlist\.paclan/g" /etc/pacman.conf
 fi
 
 message "running pacstrap..."

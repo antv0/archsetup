@@ -90,3 +90,6 @@ A,rofi-dmenu,"Symlink for using Rofi as a drop-in replacement to dmenu"
 ,freeimage,"imv dependency"
 ,cmocka,"imv dependency"
 G,https://github.com/antv0/imv,"Is a fork of imv."
+#OTHERS
+,nodejs,"nodejs"
+,yarn,"yarn"
