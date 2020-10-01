@@ -9,7 +9,7 @@ locale="fr_FR.UTF-8"
 lang="fr_FR.UTF8"
 keymap="fr-pc"
 chroot="arch-chroot /mnt "
-use_paclan=true
+use_paclan=false
 use_reflector=true
 root_password=""
 
