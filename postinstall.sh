@@ -27,8 +27,9 @@ install_git() {
 	dir="$git_dir/$progname"
 	sudo -u "$name" git clone --depth 1 "$1" "$dir" >/dev/null 2>&1 || { cd "$dir" || return ; sudo -u "$name" git pull --force origin master;}
 	cd "$dir" || exit
-	make >/dev/null 2>&1
-	make install >/dev/null 2>&1
+	sudo -u makepkg -si
+	# make >/dev/null 2>&1
+	# make install >/dev/null 2>&1
 }
 
 install_yay() {
