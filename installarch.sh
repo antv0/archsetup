@@ -62,7 +62,7 @@ done
 [ $efi != true ] && [ -z $mbr ] && error "Specify the install device for grub in 'mbr=\"\"'"
 
 message "running pacstrap..."
-pacstrap -c /mnt base linux linux-firmware
+pacstrap /mnt base linux linux-firmware
 
 message "Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -109,7 +109,7 @@ done
 unset passwords
 
 message "Installing doas, curl, base-devel, git..."
-pacstrap -c /mnt opendoas curl base-devel git
+pacstrap /mnt opendoas curl base-devel git
 echo "permit nopass :wheel as root" > /mnt/etc/doas.conf
 sed -i 's/^# %wheel ALL=(ALL) NOPASSWD: ALL$/%wheel ALL=(ALL) NOPASSWD: ALL/' /mnt/etc/sudoers
 
@@ -122,7 +122,7 @@ sed -i "s/-j2/-j$(nproc)/;s/^#MAKEFLAGS/MAKEFLAGS/" /mnt/etc/makepkg.conf
 # installing packages
 # arch repo:
 message "Installing aditional packages..."
-pacstrap -c /mnt $(pkg arch)
+pacstrap /mnt $(pkg arch)
 
 #aur
 if [ -z $users ]; then
