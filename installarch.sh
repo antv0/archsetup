@@ -125,7 +125,7 @@ else
     message "Installing yay..."
     dir=/home/${users[0]}/archinstall/aur/yay
     arch-chroot /mnt sudo -u "${users[0]}" git clone https://aur.archlinux.org/yay.git $dir || error "Error while downloading yay."
-    arch-chroot /mnt sudo -u "${users[0]}" makepkg -si -p $dir/PKGBUILD --noconfirm || error "Error while installing yay."
+    arch-chroot /mnt sudo -u "${users[0]}" sh -c "cd $dir && makepkg -si -p --noconfirm" || error "Error while installing yay."
 
     # aur packages
     arch-chroot -u "${users[0]}" /mnt yay -S --noconfirm $(pkg aur)
@@ -136,7 +136,7 @@ else
         bn=$(basename "$name" .git)
         dir=/home/${users[0]}/archinstall/git/$bn
         arch-chroot /mnt sudo -u "${users[0]}" git clone "$name" $dir
-        arch-chroot /mnt sudo -u "${users[0]}" makepkg -si -p $dir/PKGBUILD --noconfirm
+        arch-chroot /mnt sudo -u "${users[0]}" sh -c "cd $dir && makepkg -si --noconfirm"
     done
     rm -rf /mnt/home/${users[0]}/archinstall
 fi
