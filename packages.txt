@@ -1,4 +1,5 @@
 arch:
+    doas 
     networkmanager
     cronie
     trash-cli
@@ -69,6 +70,6 @@ aur:
     python-keepmenu-git
     rofi-dmenu
 
-pkgbuild:
+git:
     https://github.com/antv0/sxiv
     #
