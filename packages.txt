@@ -1,0 +1,74 @@
+arch:
+    networkmanager
+    cronie
+    trash-cli
+    xorg-server
+    xorg-xinit
+    i3-gaps
+    picom
+    dunst
+    libnotify
+    xwallpaper
+    unclutter
+    rofi
+    i3lock
+    numlockx
+    ncdu
+    alacritty
+
+    xorg-xbacklight
+    light
+    xf86-input-synaptics
+
+    gentium-plus-font
+    inter-font
+    ttf-hack
+    ttf-freefont        #fallback
+    ttf-arphic-uming    #fallback
+    ttf-baekmuk         #fallback
+
+    man
+    unzip
+    bc
+    dosfstools          # to mount dos-like fs
+    ntfs-3g             # to mount ntfs
+    exfat-utils
+
+    ffmpeg
+    pulseaudio
+    pulseaudio-alsa
+    pulsemixer
+    alsa-utils
+    maim
+    zathura
+    zathura-pdf-mupdf
+    imagemagick
+    mpv
+
+    keepassxc
+    xdotool             # for keepmenu
+
+    neovim
+    python-neovim
+    xclip
+    clang
+    ccls
+    nodejs
+
+    firefox
+
+    zsh
+    zsh-completions
+    zsh-syntax-highlighting
+
+aur:
+    polybar
+    noto-fonts-emoji-blob
+    go-mtpfs-git
+    compiledb
+    python-keepmenu-git
+    rofi-dmenu
+
+pkgbuild:
+    https://github.com/antv0/sxiv
+    #
