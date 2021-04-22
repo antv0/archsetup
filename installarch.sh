@@ -125,19 +125,19 @@ else
     message "Installing yay..."
     dir=/home/${users[0]}/archinstall/aur/yay
     mkdir -p /mnt/$dir
-    arch-chroot -u "${users[0]}" \mnt git clone https://aur.archlinux.org/yay.git $dir || error "Error while downloading yay."
-    arch-chroot -u "${users[0]}" \mnt makepkg -si -p $dir/PKGBUILD --noconfirm || error "Error while installing yay."
+    arch-chroot -u "${users[0]}" /mnt git clone https://aur.archlinux.org/yay.git $dir || error "Error while downloading yay."
+    arch-chroot -u "${users[0]}" /mnt makepkg -si -p $dir/PKGBUILD --noconfirm || error "Error while installing yay."
 
     # aur packages
-    arch-chroot -u "${users[0]}" \mnt yay -S --noconfirm $(pkg aur)
+    arch-chroot -u "${users[0]}" /mnt yay -S --noconfirm $(pkg aur)
 
     #git
     for $name in $(pkg git)
     do
         bn=$(basename "$name" .git)
         dir=/home/${users[0]}/archinstall/git/$bn
-        arch-chroot -u "${users[0]}" \mnt git clone "$name" $dir
-        arch-chroot -u "${users[0]}" \mnt makepkg -si -p $dir/PKGBUILD --noconfirm
+        arch-chroot -u "${users[0]}" /mnt git clone "$name" $dir
+        arch-chroot -u "${users[0]}" /mnt makepkg -si -p $dir/PKGBUILD --noconfirm
     done
     rm -rf /mnt/home/${users[0]}/archinstall
 fi
@@ -147,23 +147,23 @@ for n in $( eval echo {0..$((${#users[@]}-1))})
 do
     message "Installing dotfiles..."
     dir=/home/${users[n]}/dotfiles
-    arch-chroot \mnt chown -R "${users[n]}":wheel "$dir"
-    arch-chroot -u "${users[n]}" \mnt git clone --depth 1 ${dotfiles[n]} "$dir"
-    arch-chroot -u "${users[n]}" \mnt cp -rfT "$dir" /home/${users[n]}
+    arch-chroot /mnt chown -R "${users[n]}":wheel "$dir"
+    arch-chroot -u "${users[n]}" /mnt git clone --depth 1 ${dotfiles[n]} "$dir"
+    arch-chroot -u "${users[n]}" /mnt cp -rfT "$dir" /home/${users[n]}
     rm -f "/home/${users[n]}/README.md" "/home/${users[n]}/LICENSE"
 done
 
 # Enable the network manager
 message "Enabling NetworkManager..."
-arch-chroot \mnt systemctl enable NetworkManager.service >/dev/null 2>&1
+arch-chroot /mnt systemctl enable NetworkManager.service >/dev/null 2>&1
 
 # Enable the auto time synchronisation.
 message "Enabling systemd-timesyncd..."
-arch-chroot \mnt systemctl enable systemd-timesyncd.service >/dev/null 2>&1
+arch-chroot /mnt systemctl enable systemd-timesyncd.service >/dev/null 2>&1
 
 # Most important commands! Get rid of the beep!
 message "Get rid of the beep!"
-arch-chroot \mnt rmmod pcspkr
+arch-chroot /mnt rmmod pcspkr
 echo "blacklist pcspkr" > /mnt/etc/modprobe.d/nobeep.conf
 
 # message "Downloading other installation scripts in /root."
@@ -179,4 +179,4 @@ echo "blacklist pcspkr" > /mnt/etc/modprobe.d/nobeep.conf
 message "Installation completed."
 
 # message "Chroot into new system."
-# arch-chroot \mnt
+# arch-chroot /mnt
