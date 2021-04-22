@@ -125,6 +125,7 @@ else
     message "Installing yay..."
     dir=/home/${users[0]}/archinstall/aur/yay
     mkdir -p /mnt/$dir
+    arch-chroot /mnt chown -R "${users[n]}":wheel "$dir"
     arch-chroot -u "${users[0]}" /mnt git clone https://aur.archlinux.org/yay.git $dir || error "Error while downloading yay."
     arch-chroot -u "${users[0]}" /mnt makepkg -si -p $dir/PKGBUILD --noconfirm || error "Error while installing yay."
 
@@ -147,6 +148,7 @@ for n in $( eval echo {0..$((${#users[@]}-1))})
 do
     message "Installing dotfiles..."
     dir=/home/${users[n]}/dotfiles
+    mkdir -p /mnt/$dir
     arch-chroot /mnt chown -R "${users[n]}":wheel "$dir"
     arch-chroot -u "${users[n]}" /mnt git clone --depth 1 ${dotfiles[n]} "$dir"
     arch-chroot -u "${users[n]}" /mnt cp -rfT "$dir" /home/${users[n]}
