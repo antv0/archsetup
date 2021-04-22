@@ -62,6 +62,9 @@ arch:
     zsh-completions
     zsh-syntax-highlighting
 
+    python-dbus
+    python-gobject
+
 aur:
     polybar
     noto-fonts-emoji-blob

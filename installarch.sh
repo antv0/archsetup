@@ -16,6 +16,9 @@ root_password=""
 users=()
 passwords=()
 dotfiles=("https://github.com/antv0/dotfiles")
+grub=true
+efi=true
+mbr=""
 
 message() {
 	echo -e "\033[36m[installarch.sh]\033[0m $1"
@@ -53,8 +56,10 @@ fi
 # check if usernames are valid
 for user in "${users[@]}"
 do
-   echo "$user" | grep "^[a-z_][a-z0-9_-]*$" || error "invalid username : \"$user\""
+   echo "$user" | grep "^[a-z_][a-z0-9_-]*$" >/dev/null 2>&1 || error "invalid username : \"$user\""
 done
+
+[ $efi != true ] && [ -z $mbr ] && error "Specify the install device for grub in 'mbr=\"\"'"
 
 message "running pacstrap..."
 pacstrap -c /mnt base linux linux-firmware
@@ -78,7 +83,7 @@ arch-chroot /mnt mkinitcpio -P >/dev/null 2>&1
 
 message "Setting root password."
 if [ -z $root_password ]; then arch-chroot /mnt passwd;
-else printf "$root_password\n$root_password" | arch-chroot /mnt passwd; fi
+else printf "$root_password\n$root_password" | arch-chroot /mnt passwd >/dev/null 2>&1 ; fi
 unset root_password
 
 #update the mirrors with reflector
@@ -90,6 +95,7 @@ fi
 
 # add users
 
+message "Adding users : ${users[@]}"
 for user in "${users[@]}"
 do
     arch-chroot /mnt useradd -m -g wheel -s /bin/zsh "$user" >/dev/null 2>&1 || error "Error while adding user"
@@ -98,7 +104,7 @@ done
 # set passwords
 for n in $( eval echo {0..$((${#users[@]}-1))})
 do
-    [ -z ${passwords[n]} ] || printf "${passwords[n]}\n${passwords[n]}" | arch-chroot /mnt passwd ${users[n]}
+    [ -z ${passwords[n]} ] || printf "${passwords[n]}\n${passwords[n]}" | arch-chroot /mnt passwd >/dev/null 2>&1 ${users[n]}
 done
 unset passwords
 
@@ -111,10 +117,11 @@ sed -i 's/^# %wheel ALL=(ALL) NOPASSWD: ALL$/%wheel ALL=(ALL) NOPASSWD: ALL/' /m
 sed -i "s/^#Color/Color/" /mnt/etc/pacman.conf
 
 # Use all cores for compilation.
-# sed -i "s/-j2/-j$(nproc)/;s/^#MAKEFLAGS/MAKEFLAGS/" /mnt/etc/makepkg.conf
+sed -i "s/-j2/-j$(nproc)/;s/^#MAKEFLAGS/MAKEFLAGS/" /mnt/etc/makepkg.conf
 
 # installing packages
 # arch repo:
+message "Installing aditional packages..."
 pacstrap -c /mnt $(pkg arch)
 
 #aur
@@ -124,14 +131,14 @@ else
     # Install yay
     message "Installing yay..."
     dir=/home/${users[0]}/archinstall/aur/yay
-    arch-chroot /mnt sudo -u "${users[0]}" git clone https://aur.archlinux.org/yay.git $dir || error "Error while downloading yay."
-    arch-chroot /mnt sudo -u "${users[0]}" sh -c "cd $dir && makepkg -si -p --noconfirm" || error "Error while installing yay."
+    arch-chroot /mnt sudo -u "${users[0]}" git clone https://aur.archlinux.org/yay.git $dir >/dev/null 2>&1 || error "Error while downloading yay."
+    arch-chroot /mnt sudo -u "${users[0]}" sh -c "cd $dir && makepkg -si --noconfirm" >/dev/null 2>&1 || error "Error while installing yay."
 
     # aur packages
-    arch-chroot -u "${users[0]}" /mnt yay -S --noconfirm $(pkg aur)
+    arch-chroot /mnt sudo -u "${users[0]}" yay -S --noconfirm $(pkg aur)
 
     #git
-    for $name in $(pkg git)
+    for name in $(pkg git)
     do
         bn=$(basename "$name" .git)
         dir=/home/${users[0]}/archinstall/git/$bn
@@ -164,15 +171,16 @@ message "Get rid of the beep!"
 arch-chroot /mnt rmmod pcspkr
 echo "blacklist pcspkr" > /mnt/etc/modprobe.d/nobeep.conf
 
-# message "Downloading other installation scripts in /root."
-# cd /mnt/root
-# curl -O https://raw.githubusercontent.com/antv0/archsetup/master/postinstall.sh >/dev/null 2>&1
-# chmod 777 postinstall.sh
-# curl -O https://raw.githubusercontent.com/antv0/archsetup/master/grub-install-efi.sh >/dev/null 2>&1
-# chmod 777 grub-install-efi.sh
-# curl -O https://raw.githubusercontent.com/antv0/archsetup/master/grub-install-mbr.sh >/dev/null 2>&1
-# chmod 777 grub-install-mbr.sh
-# curl -O https://raw.githubusercontent.com/antv0/archsetup/master/packages.csv >/dev/null 2>&1
+if [ "$grub" = true ]; then
+    echo "Downloading grub..."
+    pacman --noconfirm -S grub efibootmgr >/dev/null 2>&1
+    if [ "$efi" = true ]; then
+        grub-install
+    else
+        grub_install $mbr
+    fi
+    grub-mkconfig -o /boot/grub/grub.cfg
+fi
 
 message "Installation completed."
 
