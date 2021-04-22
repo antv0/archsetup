@@ -2,13 +2,14 @@
 
 #mount your drive in /mnt before running this script
 
+# -c as option
+
 hostname="arch"
 country="france" #for reflector
 timezone="Europe/Paris"
 locale="fr_FR.UTF-8"
 lang="fr_FR.UTF8"
 keymap="fr-pc"
-chroot="arch-chroot /mnt "
 additional_packages="https://raw.githubusercontent.com/antv0/archsetup/master/packages.txt"
 use_reflector=false
 root_password=""
@@ -62,10 +63,10 @@ message "Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
 message "Setting up timezone, language, keymap, hostname..."
-$chroot ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
-$chroot hwclock --systohc >/dev/null 2>&1
+arch-chroot /mnt ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
+arch-chroot /mnt hwclock --systohc >/dev/null 2>&1
 sed -i "s/#$locale/$locale/g" /mnt/etc/locale.gen
-$chroot locale-gen >/dev/null 2>&1
+arch-chroot /mnt locale-gen >/dev/null 2>&1
 echo "LANG=$lang" > /mnt/etc/locale.conf
 echo "KEYMAP=$keymap" > /mnt/etc/vconsole.conf
 echo $hostname > /mnt/etc/hostname
@@ -73,37 +74,38 @@ echo "127.0.0.1	localhost
 ::1		localhost
 127.0.1.1	"$hostname".localdomain	"$hostname > /mnt/etc/hosts
 message "running mkinicpio -P..."
-$chroot mkinitcpio -P >/dev/null 2>&1
+arch-chroot /mnt mkinitcpio -P >/dev/null 2>&1
 
 message "Setting root password."
-if [ -z $root_password ]; then $chroot passwd;
-else echo $root_password | $chroot passwd --stdin; fi
+if [ -z $root_password ]; then arch-chroot /mnt passwd;
+else printf "$root_password\n$root_password" | arch-chroot /mnt passwd; fi
 unset root_password
 
 #update the mirrors with reflector
 if [ "$use_reflector" = true ]; then
     message "Updating mirrors with reflector."
-	$chroot pacman -Sy --noconfirm --needed reflector >/dev/null 2>&1
-	$chroot reflector -c $country --score 5 --save /etc/pacman.d/mirrorlist
+	arch-chroot /mnt pacman -Sy --noconfirm --needed reflector >/dev/null 2>&1
+	arch-chroot /mnt reflector -c $country --score 5 --save /etc/pacman.d/mirrorlist
 fi
 
 # add users
 
 for user in "${users[@]}"
 do
-    $chroot useradd -m -g wheel -s /bin/zsh "$user" >/dev/null 2>&1 || error "Error while adding user"
+    arch-chroot /mnt useradd -m -g wheel -s /bin/zsh "$user" >/dev/null 2>&1 || error "Error while adding user"
 done
 
 # set passwords
-for n in $( eval echo {0..$((${#ar[@]}-1))})
+for n in $( eval echo {0..$((${#users[@]}-1))})
 do
-    [ -z ${users[n]} ] || echo ${passwords[n]} | $chroot passwd ${users[n]} --stdin
+    [ -z ${passwords[n]} ] || printf "${passwords[n]}\n${passwords[n]}" | arch-chroot /mnt passwd ${users[n]}
 done
 unset passwords
 
 message "Installing doas, curl, base-devel, git..."
 pacstrap -c /mnt opendoas curl base-devel git
 echo "permit nopass :wheel as root" > /mnt/etc/doas.conf
+sed -i 's/^# %wheel ALL=(ALL) NOPASSWD: ALL$/%wheel ALL=(ALL) NOPASSWD: ALL/' /mnt/etc/sudoers
 
 # Make pacman and yay colorful.
 sed -i "s/^#Color/Color/" /mnt/etc/pacman.conf
@@ -121,50 +123,47 @@ if [ -z $users ]; then
 else
     # Install yay
     message "Installing yay..."
-    dir=/mnt/tmp/aur/yay
-    mkdir -p $dir
-    cd $dir
-    $chroot -u "${users[0]}" git clone https://aur.archlinux.org/yay.git >/dev/null 2>&1 || error "Error while downloading yay."
-    cd yay
-    $chroot -u "${users[0]}" makepkg -si --noconfirm  >/dev/null 2>&1 || error "Error while installing yay."
-    cd ~;
+    dir=/home/${users[0]}/archinstall/aur/yay
+    mkdir -p /mnt/$dir
+    arch-chroot -u "${users[0]}" \mnt git clone https://aur.archlinux.org/yay.git $dir || error "Error while downloading yay."
+    arch-chroot -u "${users[0]}" \mnt makepkg -si -p $dir/PKGBUILD --noconfirm || error "Error while installing yay."
 
-    $chroot -u "${users[0]}" yay -S --noconfirm $(pkg aur)
+    # aur packages
+    arch-chroot -u "${users[0]}" \mnt yay -S --noconfirm $(pkg aur)
 
     #git
     for $name in $(pkg git)
     do
         bn=$(basename "$name" .git)
-        dir=/mnt/tmp/git/$bn
-        $chroot -u "${users[0]}" git clone "$name" "$dir"
-        cd "$dir" || exit
-        $chroot -u "${users[0]}" makepkg -si
+        dir=/home/${users[0]}/archinstall/git/$bn
+        arch-chroot -u "${users[0]}" \mnt git clone "$name" $dir
+        arch-chroot -u "${users[0]}" \mnt makepkg -si -p $dir/PKGBUILD --noconfirm
     done
+    rm -rf /mnt/home/${users[0]}/archinstall
 fi
 
 # Install the dotfiles in the user's home directory
-for n in $( eval echo {0..$((${#ar[@]}-1))})
+for n in $( eval echo {0..$((${#users[@]}-1))})
 do
     message "Installing dotfiles..."
-    dir=/mnt/tmp/dotfiles
-    # [ ! -d "/home/$name" ] && mkdir -p /home/$name
-    chown -R "${users[n]}":wheel "$dir"
-    $chroot -u "${users[n]}" git clone --depth 1 ${dotfiles[n]} "$dir"
-    $chroot -u "${users[n]}" cp -rfT "$dir" /home/${users[n]}
+    dir=/home/${users[n]}/dotfiles
+    arch-chroot \mnt chown -R "${users[n]}":wheel "$dir"
+    arch-chroot -u "${users[n]}" \mnt git clone --depth 1 ${dotfiles[n]} "$dir"
+    arch-chroot -u "${users[n]}" \mnt cp -rfT "$dir" /home/${users[n]}
     rm -f "/home/${users[n]}/README.md" "/home/${users[n]}/LICENSE"
 done
 
 # Enable the network manager
 message "Enabling NetworkManager..."
-$chroot systemctl enable NetworkManager.service >/dev/null 2>&1
+arch-chroot \mnt systemctl enable NetworkManager.service >/dev/null 2>&1
 
 # Enable the auto time synchronisation.
 message "Enabling systemd-timesyncd..."
-$chroot systemctl enable systemd-timesyncd.service >/dev/null 2>&1
+arch-chroot \mnt systemctl enable systemd-timesyncd.service >/dev/null 2>&1
 
 # Most important commands! Get rid of the beep!
 message "Get rid of the beep!"
-$chroot rmmod pcspkr
+arch-chroot \mnt rmmod pcspkr
 echo "blacklist pcspkr" > /mnt/etc/modprobe.d/nobeep.conf
 
 # message "Downloading other installation scripts in /root."
@@ -180,4 +179,4 @@ echo "blacklist pcspkr" > /mnt/etc/modprobe.d/nobeep.conf
 message "Installation completed."
 
 # message "Chroot into new system."
-# $chroot
+# arch-chroot \mnt
