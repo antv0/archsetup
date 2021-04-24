@@ -1,10 +1,15 @@
 arch:
-    doas 
+    # core
+    doas
     networkmanager
+
+    # desktop
     cronie
     trash-cli
     xorg-server
     xorg-xinit
+    xorg-xrandr
+    xorg-xwininfo
     i3-gaps
     picom
     dunst
@@ -16,6 +21,9 @@ arch:
     numlockx
     ncdu
     alacritty
+    htop
+    playerctl
+    pulsemixer
 
     xorg-xbacklight
     light
@@ -28,6 +36,10 @@ arch:
     ttf-arphic-uming    #fallback
     ttf-baekmuk         #fallback
 
+    python-dbus
+    python-gobject
+
+
     man
     unzip
     bc
@@ -38,7 +50,6 @@ arch:
     ffmpeg
     pulseaudio
     pulseaudio-alsa
-    pulsemixer
     alsa-utils
     maim
     zathura
@@ -62,9 +73,6 @@ arch:
     zsh-completions
     zsh-syntax-highlighting
 
-    python-dbus
-    python-gobject
-
 aur:
     polybar
     noto-fonts-emoji-blob
@@ -72,7 +80,8 @@ aur:
     compiledb
     python-keepmenu-git
     rofi-dmenu
+    autotiling
+    nnn-icons
 
 git:
     https://github.com/antv0/sxiv
-    #

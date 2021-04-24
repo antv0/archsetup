@@ -155,7 +155,7 @@ do
     dir=/home/${users[n]}/dotfiles
     arch-chroot /mnt sudo -u "${users[n]}" git clone --depth 1 ${dotfiles[n]} "$dir"
     arch-chroot /mnt sudo -u "${users[n]}" cp -rfT "$dir" /home/${users[n]}
-    rm -f "/home/${users[n]}/README.md" "/home/${users[n]}/LICENSE"
+    arch-chroot /mnt rm -f "/home/${users[n]}/README.md" "/home/${users[n]}/LICENSE"
 done
 
 # Enable the network manager
@@ -170,6 +170,16 @@ arch-chroot /mnt systemctl enable systemd-timesyncd.service >/dev/null 2>&1
 message "Get rid of the beep!"
 arch-chroot /mnt rmmod pcspkr
 echo "blacklist pcspkr" > /mnt/etc/modprobe.d/nobeep.conf
+
+message "Disable mouse acceleration!"
+echo 'Section "InputClass"
+    Identifier "My Mouse"
+    MatchIsPointer "yes"
+    Option "AccelerationProfile" "-1"
+    Option "AccelerationScheme" "none"
+    Option "AccelSpeed" "-1"
+EndSection' > /mnt/usr/share/X11/xorg.conf.d/50-mouse-acceleration.conf
+
 
 if [ "$grub" = true ]; then
     echo "Downloading grub..."
